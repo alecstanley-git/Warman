@@ -35,36 +35,6 @@ TBC
 TBC
 */
 
-void setup() {
-  // CONFIGURE ALL WM1 PINS AS OUTPUTS
-  pinMode(M1_PWM, OUTPUT);
-  pinMode(M1_DIR, OUTPUT);
-  pinMode(M2_PWM, OUTPUT);
-  pinMode(M2_DIR, OUTPUT);
-
-  /* unused pins:
-  pinMode(M3_PWM, OUTPUT);
-  pinMode(M3_DIR, OUTPUT);
-  pinMode(M4_PWM, OUTPUT);
-  pinMode(M4_DIR, OUTPUT);
-  pinMode(RELAY1, OUTPUT);
-  pinMode(RELAY2, OUTPUT);
-  pinMode(SERVO1, OUTPUT);
-  pinMode(SERVO2, OUTPUT);
-  */
-}
-
-void loop() {
-  // DIR pin dictates motor's dirrection
-  // PWM pin dictates the motor's voltage (0-255), which loosely controls speed
-
-  moveForward(4,100);
-  moveForward(4,50);
-  turnRight(45);
-  moveForward(8,100);
-
-}
-
 // <FUNCTIONS>
 
 void moveForward(double seconds, int percentagePower) {
@@ -136,5 +106,35 @@ void turnRight(int angle) {
 
   analogWrite(M1_PWM, 0);
   analogWrite(M2_PWM, 0);
+
+}
+
+void setup() {
+  // CONFIGURE ALL WM1 PINS AS OUTPUTS
+  pinMode(M1_PWM, OUTPUT);
+  pinMode(M1_DIR, OUTPUT);
+  pinMode(M2_PWM, OUTPUT);
+  pinMode(M2_DIR, OUTPUT);
+
+  /* unused pins:
+  pinMode(M3_PWM, OUTPUT);
+  pinMode(M3_DIR, OUTPUT);
+  pinMode(M4_PWM, OUTPUT);
+  pinMode(M4_DIR, OUTPUT);
+  pinMode(RELAY1, OUTPUT);
+  pinMode(RELAY2, OUTPUT);
+  pinMode(SERVO1, OUTPUT);
+  pinMode(SERVO2, OUTPUT);
+  */
+}
+
+void loop() {
+  // DIR pin dictates motor's dirrection
+  // PWM pin dictates the motor's voltage (0-255), which loosely controls speed
+
+  moveForward(4,100);
+  moveForward(4,50);
+  turnRight(45);
+  moveForward(8,100);
 
 }
