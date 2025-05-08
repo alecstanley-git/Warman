@@ -126,6 +126,45 @@ void moveBackward(int milliseconds, int power) {
   analogWrite(M4_PWM, 0);
 }
 
+void strafeLeft(int milliseconds, int power) {
+  digitalWrite(M1_DIR, LOW);  // FL Backward
+  digitalWrite(M2_DIR, HIGH); // RL Forward
+  digitalWrite(M3_DIR, HIGH); // FR Forward
+  digitalWrite(M4_DIR, LOW);  // RR Backward
+
+  analogWrite(M1_PWM, power);
+  analogWrite(M2_PWM, power);
+  analogWrite(M3_PWM, power);
+  analogWrite(M4_PWM, power);
+
+  delay(milliseconds);
+
+  analogWrite(M1_PWM, 0);
+  analogWrite(M2_PWM, 0);
+  analogWrite(M3_PWM, 0);
+  analogWrite(M4_PWM, 0);
+}
+
+void strafeRight(int milliseconds, int power) {
+  digitalWrite(M1_DIR, HIGH); // FL Forward
+  digitalWrite(M2_DIR, LOW);  // RL Backward
+  digitalWrite(M3_DIR, LOW);  // FR Backward
+  digitalWrite(M4_DIR, HIGH); // RR Forward
+
+  analogWrite(M1_PWM, power);
+  analogWrite(M2_PWM, power);
+  analogWrite(M3_PWM, power);
+  analogWrite(M4_PWM, power);
+
+  delay(milliseconds);
+
+  analogWrite(M1_PWM, 0);
+  analogWrite(M2_PWM, 0);
+  analogWrite(M3_PWM, 0);
+  analogWrite(M4_PWM, 0);
+}
+
+
 void raiseArm(int milliseconds) {
   digitalWrite(M5_pin1, HIGH);
   digitalWrite(M5_pin2, LOW);
@@ -166,6 +205,11 @@ float readDistance(int trigPin, int echoPin) {
   digitalWrite(trigPin, LOW);
 
   long duration = pulseIn(echoPin, HIGH, 30000);
+
+  if (duration == 0) {
+    return 999.0; // if echo times out
+  }
+
   return duration * 0.034 / 2;
 }
 
@@ -201,6 +245,15 @@ void loop() {
 
   // APPROACHING EDGE OF BOARD (USING ULTRASONICS)
 
+  // initialising distance buffers
+  for (int i = 0; i < NUM_SAMPLES; i++) {
+    distLeftBuf[i] = readDistance(uLeftTrig, uLeftEcho);
+    distRightBuf[i] = readDistance(uRightTrig, uRightEcho);
+    // Add a small delay if needed, e.g., if sensors interfere or need settling time
+    delay(60); // HC-SR04 needs ~60ms between measurements
+  }
+  sampleIndex = 0; // Ensure sampleIndex is reset
+
   bool approach = true;
 
   while(approach) {
@@ -223,20 +276,21 @@ void loop() {
 
     // move forward if safe to do so, otherwise stop
     if (!cliffLeft and !cliffRight) {
-      moveForward(50,150); // only a small amount
+      moveForward(60,150); // only a small amount
     } else if (!cliffLeft and cliffRight) {
-      moveHalfForward(50,150,0);
+      moveHalfForward(60,150,0);
     } else if (cliffLeft and !cliffRight) {
-      moveHalfForward(50,150,1);
-    } else if (cliffLeft and cliffRight) {
-      approach = false; // loop can be broken by setting this to false (won't repeat)
+      moveHalfForward(60,150,1);
     } else {
-      approach = false;
+      approach = false; // loop can be broken by setting this to false (won't repeat)
     }
 
   }
 
+  delay(2000);
+
   // MOVE ENTIRE ROBOT LEFT ACROSS BOARD
-  //todo
+  
+  strafeLeft(10000, 200);
 
 }
