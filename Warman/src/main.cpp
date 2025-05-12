@@ -71,8 +71,8 @@ void buttonWait(int pin) {
 void moveForward(int milliseconds, int power) {
   digitalWrite(M1_DIR, HIGH);
   digitalWrite(M2_DIR, HIGH);
-  digitalWrite(M3_DIR, HIGH);
-  digitalWrite(M4_DIR, HIGH);
+  digitalWrite(M3_DIR, LOW);
+  digitalWrite(M4_DIR, LOW);
 
   analogWrite(M1_PWM, power);
   analogWrite(M2_PWM, power);
@@ -164,6 +164,24 @@ void strafeRight(int milliseconds, int power) {
   analogWrite(M4_PWM, 0);
 }
 
+void flip180() {
+  digitalWrite(M1_DIR, HIGH);
+  digitalWrite(M2_DIR, HIGH);
+  digitalWrite(M3_DIR, HIGH);
+  digitalWrite(M4_DIR, HIGH);
+
+  analogWrite(M1_PWM, 0);
+  analogWrite(M2_PWM, 255);
+  analogWrite(M3_PWM, 255);
+  analogWrite(M4_PWM, 0);
+
+  delay(16000);
+
+  analogWrite(M1_PWM, 0);
+  analogWrite(M2_PWM, 0);
+  analogWrite(M3_PWM, 0);
+  analogWrite(M4_PWM, 0);
+}
 
 void raiseArm(int milliseconds) {
   digitalWrite(M5_pin1, HIGH);
@@ -182,16 +200,16 @@ void lowerArm(int milliseconds) {
 }
 
 void extendArm(int milliseconds) {
-  digitalWrite(M6_pin1, HIGH);
-  digitalWrite(M6_pin2, LOW);
+  digitalWrite(M6_pin1, LOW);
+  digitalWrite(M6_pin2, HIGH);
   delay(milliseconds);
   digitalWrite(M6_pin1, LOW);
   digitalWrite(M6_pin2, LOW);
 }
 
 void retractArm(int milliseconds) {
-  digitalWrite(M6_pin1, LOW);
-  digitalWrite(M6_pin2, HIGH);
+  digitalWrite(M6_pin1, HIGH);
+  digitalWrite(M6_pin2, LOW);
   delay(milliseconds);
   digitalWrite(M6_pin1, LOW);
   digitalWrite(M6_pin2, LOW);
@@ -224,11 +242,12 @@ float computeAverage(float buffer[]) {
 void loop() {
 
   // wait for activation
-  buttonWait(buttonPin);
+  //buttonWait(buttonPin);
   delay(2000);
-
+  flip180();
+  delay(10000);
   // Move forward for 10 seconds:
-  moveForward(10000,255);
+  moveForward(8000,150);
 
   // ARM OPERATION
   delay(1000);
@@ -236,12 +255,16 @@ void loop() {
   raiseArm(2000);
   // extend arm
   extendArm(5000);
+  delay(1000);
   // approach the balls
-  moveForward(2000,100);
+  moveForward(2000,150);
   // lower the arm over the balls
-  lowerArm(1500); // lowering requires less time as the downwards weight has less torque, motor can operate faster
+  lowerArm(1700); // lowering requires less time as the downwards weight has less torque, motor can operate faster
   // retract arm
   retractArm(5000);
+
+  raiseArm(5000);
+  moveForward(3000,150);
 
   // APPROACHING EDGE OF BOARD (USING ULTRASONICS)
 
@@ -292,5 +315,4 @@ void loop() {
   // MOVE ENTIRE ROBOT LEFT ACROSS BOARD
   
   strafeLeft(10000, 200);
-
 }
