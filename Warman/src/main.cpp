@@ -21,13 +21,16 @@
 #define M6_pin1 26
 #define M6_pin2 28
 
-#define uLeftTrig 31
-#define uLeftEcho 30
+#define uLeftTrig 46
+#define uLeftEcho 48
 
-#define uRightTrig 43
-#define uRightEcho 45
+#define uRightTrig 47
+#define uRightEcho 49
 
-#define buttonPin 38
+#define buttonPin 50
+
+#define redLEDPin 53
+#define greenLEDPin 52
 
 // --- Constants ---
 const int NUM_SAMPLES = 5;
@@ -54,13 +57,20 @@ void setup() {
   pinMode(M6_pin1, OUTPUT);
   pinMode(M6_pin2, OUTPUT);
 
+  // Ultrasonic pins
   pinMode(uLeftTrig, OUTPUT);
   pinMode(uRightTrig, OUTPUT);
   pinMode(uLeftEcho, INPUT);
   pinMode(uRightEcho, INPUT);
 
+  // Misc pins
+  pinMode(buttonPin, INPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(redLEDPin, OUTPUT);
+
 }
 
+// Wait for button press upon start
 void buttonWait(int pin) {
   while (digitalRead(pin) == LOW) {
     delay(10);
@@ -68,7 +78,18 @@ void buttonWait(int pin) {
   return;
 }
 
+// Define function to stop all motors to avoid repetition in code
+void stopMotors() {
+
+  analogWrite(M1_PWM, 0);
+  analogWrite(M2_PWM, 0);
+  analogWrite(M3_PWM, 0);
+  analogWrite(M4_PWM, 0);
+}
+
 void moveForward(int milliseconds, int power) {
+
+  // HIGH and LOW set according to mecanum wheel parameters
   digitalWrite(M1_DIR, HIGH);
   digitalWrite(M2_DIR, HIGH);
   digitalWrite(M3_DIR, LOW);
@@ -81,29 +102,31 @@ void moveForward(int milliseconds, int power) {
 
   delay(milliseconds);
 
-  analogWrite(M1_PWM, 0);
-  analogWrite(M2_PWM, 0);
-  analogWrite(M3_PWM, 0);
-  analogWrite(M4_PWM, 0);
+  stopMotors();
 }
 
+// Function called when rover is edging towards the end of the board, to allow it to split left and right motion
 void moveHalfForward(int milliseconds, int power, int side) {
+
   if (side == 0) { // LEFT SIDE
     digitalWrite(M1_DIR, HIGH);
     digitalWrite(M2_DIR, HIGH);
+
     analogWrite(M1_PWM, power);
     analogWrite(M2_PWM, power);
+
     delay(milliseconds);
-    analogWrite(M1_PWM, 0);
-    analogWrite(M2_PWM, 0);
+    stopMotors();
+
   } else if (side == 1) { // RIGHT SIDE
     digitalWrite(M3_DIR, HIGH);
     digitalWrite(M4_DIR, HIGH);
+
     analogWrite(M3_PWM, power);
     analogWrite(M4_PWM, power);
+
     delay(milliseconds);
-    analogWrite(M3_PWM, 0);
-    analogWrite(M4_PWM, 0);
+    stopMotors();
   }
 }
 
@@ -120,10 +143,7 @@ void moveBackward(int milliseconds, int power) {
 
   delay(milliseconds);
 
-  analogWrite(M1_PWM, 0);
-  analogWrite(M2_PWM, 0);
-  analogWrite(M3_PWM, 0);
-  analogWrite(M4_PWM, 0);
+  stopMotors();
 }
 
 void strafeLeft(int milliseconds, int power) {
@@ -139,10 +159,7 @@ void strafeLeft(int milliseconds, int power) {
 
   delay(milliseconds);
 
-  analogWrite(M1_PWM, 0);
-  analogWrite(M2_PWM, 0);
-  analogWrite(M3_PWM, 0);
-  analogWrite(M4_PWM, 0);
+  stopMotors();
 }
 
 void strafeRight(int milliseconds, int power) {
@@ -158,12 +175,11 @@ void strafeRight(int milliseconds, int power) {
 
   delay(milliseconds);
 
-  analogWrite(M1_PWM, 0);
-  analogWrite(M2_PWM, 0);
-  analogWrite(M3_PWM, 0);
-  analogWrite(M4_PWM, 0);
+  stopMotors();
 }
 
+// Turn robot around after strafing across board
+// Function works by using wheels in particular motion for a set period of time
 void flip180() {
   digitalWrite(M1_DIR, HIGH);
   digitalWrite(M2_DIR, HIGH);
@@ -177,44 +193,51 @@ void flip180() {
 
   delay(16000);
 
-  analogWrite(M1_PWM, 0);
-  analogWrite(M2_PWM, 0);
-  analogWrite(M3_PWM, 0);
-  analogWrite(M4_PWM, 0);
+  stopMotors();
 }
 
 void raiseArm(int milliseconds) {
+
   digitalWrite(M5_pin1, HIGH);
   digitalWrite(M5_pin2, LOW);
+
   delay(milliseconds);
   digitalWrite(M5_pin1, LOW);
   digitalWrite(M5_pin2, LOW);
 }
 
 void lowerArm(int milliseconds) {
+
   digitalWrite(M5_pin1, LOW);
   digitalWrite(M5_pin2, HIGH);
+
   delay(milliseconds);
   digitalWrite(M5_pin1, LOW);
   digitalWrite(M5_pin2, LOW);
 }
 
 void extendArm(int milliseconds) {
+
   digitalWrite(M6_pin1, LOW);
   digitalWrite(M6_pin2, HIGH);
+
   delay(milliseconds);
   digitalWrite(M6_pin1, LOW);
   digitalWrite(M6_pin2, LOW);
 }
 
 void retractArm(int milliseconds) {
+
   digitalWrite(M6_pin1, HIGH);
   digitalWrite(M6_pin2, LOW);
+
   delay(milliseconds);
   digitalWrite(M6_pin1, LOW);
   digitalWrite(M6_pin2, LOW);
 }
 
+// Distance function works by pulsing the ultrasonic sensor and calibrating the time output into centimetres.
+// Included a catch for 0 "infinite" values
 float readDistance(int trigPin, int echoPin) {
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -231,6 +254,7 @@ float readDistance(int trigPin, int echoPin) {
   return duration * 0.034 / 2;
 }
 
+// Averages the last five ultrasonic samples to avoid false positives
 float computeAverage(float buffer[]) {
   float sum = 0;
   for (int i = 0; i < NUM_SAMPLES; i++) {
@@ -241,45 +265,67 @@ float computeAverage(float buffer[]) {
 
 void loop() {
 
-  // wait for activation
-  //buttonWait(buttonPin);
-  delay(2000);
-  flip180();
-  delay(10000);
-  // Move forward for 10 seconds:
+  // Show that rover is ready to start
+  digitalWrite(redLEDPin,HIGH);
+
+  // Wait for button press
+  buttonWait(buttonPin);
+
+  digitalWrite(redLEDPin,LOW); // Turn off start LED
+
+  delay(1000);
+
+  // Approach the balls
   moveForward(8000,150);
 
-  // ARM OPERATION
   delay(1000);
-  // raise the arm above and over the balls
+
+  //
+  // ARM OPERATION TO PICKUP BALLS
+  //
+
+  // Raise the arm above and over the balls
   raiseArm(2000);
-  // extend arm
+
+  // Extend arm
   extendArm(5000);
+
   delay(1000);
-  // approach the balls
+
+  // Approach the balls
   moveForward(2000,150);
-  // lower the arm over the balls
+
+  // Lower the arm over the balls
   lowerArm(1700); // lowering requires less time as the downwards weight has less torque, motor can operate faster
-  // retract arm
+
+  // Retract arm
   retractArm(5000);
 
+  // Raise arm with balls inside it as high as possible to keep centre of mass as close as possible
   raiseArm(5000);
+
+  // Approach the edge of the board, but not too close. Next section handles approach
   moveForward(3000,150);
 
+  //
   // APPROACHING EDGE OF BOARD (USING ULTRASONICS)
+  //
 
-  // initialising distance buffers
+  // Initialising distance buffers
   for (int i = 0; i < NUM_SAMPLES; i++) {
     distLeftBuf[i] = readDistance(uLeftTrig, uLeftEcho);
     distRightBuf[i] = readDistance(uRightTrig, uRightEcho);
     // Add a small delay if needed, e.g., if sensors interfere or need settling time
     delay(60); // HC-SR04 needs ~60ms between measurements
   }
-  sampleIndex = 0; // Ensure sampleIndex is reset
 
+  // Initialise loop conditions, index and boolean
+  sampleIndex = 0;
   bool approach = true;
 
+  // Loop will only stop once both sensors read >20cm (at the edge)
   while(approach) {
+
     // Read distances
     float currentLeft = readDistance(uLeftTrig, uLeftEcho);
     float currentRight = readDistance(uRightTrig, uRightEcho);
@@ -297,22 +343,51 @@ void loop() {
     bool cliffLeft = avgLeft > CLIFF_THRESHOLD;
     bool cliffRight = avgRight > CLIFF_THRESHOLD;
 
-    // move forward if safe to do so, otherwise stop
+    // Move each side forward if safe to do so, otherwise stop
     if (!cliffLeft and !cliffRight) {
-      moveForward(60,150); // only a small amount
+      moveForward(60,150); // only by a small amount
+
     } else if (!cliffLeft and cliffRight) {
       moveHalfForward(60,150,0);
+
     } else if (cliffLeft and !cliffRight) {
       moveHalfForward(60,150,1);
+
     } else {
-      approach = false; // loop can be broken by setting this to false (won't repeat)
+      approach = false; // loop will break by setting loop condition here to false. i.e. rover is at edge
     }
 
   }
 
   delay(2000);
 
-  // MOVE ENTIRE ROBOT LEFT ACROSS BOARD
+  //
+  // DEPOSIT SEQUENCE
+  //
   
+  // Maneuver left across entire board, all the way into the deposit zone
   strafeLeft(10000, 200);
+
+  // Fall back from the edge
+  moveBackward(3000,150);
+
+  // Turn robot around
+  flip180();
+
+  // Approach drop zone
+  moveForward(5000,150);
+
+  //
+  // BALL DROP SEQUENCE
+  //
+
+  lowerArm(4500); // Lower over drop zone
+
+  // Let balls loose
+  extendArm(5000);
+  retractArm(5000);
+
+  // Move backward and set "finished" light on
+  moveBackward(2000,150);
+  digitalWrite(greenLEDPin,HIGH);
 }
