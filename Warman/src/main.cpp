@@ -200,8 +200,8 @@ void flip180() {
 
 void raiseArm(int milliseconds) {
 
-  digitalWrite(M5_pin1, HIGH);
-  digitalWrite(M5_pin2, LOW);
+  digitalWrite(M5_pin1, LOW);
+  digitalWrite(M5_pin2, HIGH);
 
   delay(milliseconds);
   digitalWrite(M5_pin1, LOW);
@@ -210,8 +210,8 @@ void raiseArm(int milliseconds) {
 
 void lowerArm(int milliseconds) {
 
-  digitalWrite(M5_pin1, LOW);
-  digitalWrite(M5_pin2, HIGH);
+  digitalWrite(M5_pin1, HIGH);
+  digitalWrite(M5_pin2, LOW);
 
   delay(milliseconds);
   digitalWrite(M5_pin1, LOW);
