@@ -267,6 +267,10 @@ float computeAverage(float buffer[]) {
 
 void loop() {
 
+  // Debug lines
+  // lowerArm(5000);
+  // raiseArm(5000);
+
   // Show that rover is ready to start
   digitalWrite(redLEDPin,HIGH);
 
@@ -291,13 +295,13 @@ void loop() {
   //
 
   // Approach the balls
-  moveForward(2000,150);
+  moveForward(3000,150);
 
   // Lower the arm over the balls
   lowerArm(1800); // lowering requires less time as the downwards weight has less torque, motor can operate faster
 
   // Retract arm
-  retractArm(6000);
+  retractArm(4000);
 
   // Raise arm with balls inside it as high as possible to keep centre of mass as close as possible
   // raiseArm(5000);
@@ -368,29 +372,36 @@ void loop() {
 
   moveBackward(250,150);
 
-  strafeLeft(28000, 200);
+  strafeLeft(8000,150);
+
+  moveBackward(400,150);
+
+  strafeLeft(17250, 200);
 
   // Fall back from the edge
-  moveBackward(5000,150);
+  moveBackward(8000,150);
 
   // Turn robot around
   flip180();
 
   // Approach drop zone
-  moveForward(3000,150);
+  moveForward(5000,150);
 
   //
   // BALL DROP SEQUENCE
   //
 
-  raiseArm(4500); // Lower over drop zone
+  raiseArm(2500); // Raise over drop zone
+
+  moveForward(3000,150);
 
   // Let balls loose
   extendArm(5000);
   retractArm(5000);
 
   // Move backward and set "finished" light on
-  moveBackward(2000,150);
+  moveBackward(3000,150);
+  lowerArm(1800);
   digitalWrite(greenLEDPin,HIGH);
 
   delay(20000);
