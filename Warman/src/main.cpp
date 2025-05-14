@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-// 10:55am35446456
+// 11:07am
 
 // <WM1 PIN DEFINITIONS>
 #define M1_PWM 6
@@ -111,8 +111,8 @@ void moveForward(int milliseconds, int power) {
 void moveHalfForward(int milliseconds, int power, int side) {
 
   if (side == 0) { // LEFT SIDE
-    digitalWrite(M1_DIR, HIGH);
-    digitalWrite(M2_DIR, HIGH);
+    digitalWrite(M1_DIR, LOW);
+    digitalWrite(M2_DIR, LOW);
 
     analogWrite(M1_PWM, power);
     analogWrite(M2_PWM, power);
@@ -121,8 +121,8 @@ void moveHalfForward(int milliseconds, int power, int side) {
     stopMotors();
 
   } else if (side == 1) { // RIGHT SIDE
-    digitalWrite(M3_DIR, HIGH);
-    digitalWrite(M4_DIR, HIGH);
+    digitalWrite(M3_DIR, LOW);
+    digitalWrite(M4_DIR, LOW);
 
     analogWrite(M3_PWM, power);
     analogWrite(M4_PWM, power);
@@ -135,8 +135,8 @@ void moveHalfForward(int milliseconds, int power, int side) {
 void moveBackward(int milliseconds, int power) {
   digitalWrite(M1_DIR, LOW);
   digitalWrite(M2_DIR, LOW);
-  digitalWrite(M3_DIR, LOW);
-  digitalWrite(M4_DIR, LOW);
+  digitalWrite(M3_DIR, HIGH);
+  digitalWrite(M4_DIR, HIGH);
 
   analogWrite(M1_PWM, power);
   analogWrite(M2_PWM, power);
@@ -193,22 +193,12 @@ void flip180() {
   analogWrite(M3_PWM, 255);
   analogWrite(M4_PWM, 0);
 
-  delay(16000);
+  delay(14700);
 
   stopMotors();
 }
 
 void raiseArm(int milliseconds) {
-
-  digitalWrite(M5_pin1, LOW);
-  digitalWrite(M5_pin2, HIGH);
-
-  delay(milliseconds);
-  digitalWrite(M5_pin1, LOW);
-  digitalWrite(M5_pin2, LOW);
-}
-
-void lowerArm(int milliseconds) {
 
   digitalWrite(M5_pin1, HIGH);
   digitalWrite(M5_pin2, LOW);
@@ -218,10 +208,20 @@ void lowerArm(int milliseconds) {
   digitalWrite(M5_pin2, LOW);
 }
 
+void lowerArm(int milliseconds) {
+
+  digitalWrite(M5_pin1, LOW);
+  digitalWrite(M5_pin2, HIGH);
+
+  delay(milliseconds);
+  digitalWrite(M5_pin1, LOW);
+  digitalWrite(M5_pin2, LOW);
+}
+
 void extendArm(int milliseconds) {
 
-  digitalWrite(M6_pin1, LOW);
-  digitalWrite(M6_pin2, HIGH);
+  digitalWrite(M6_pin1, HIGH);
+  digitalWrite(M6_pin2, LOW);
 
   delay(milliseconds);
   digitalWrite(M6_pin1, LOW);
@@ -230,8 +230,8 @@ void extendArm(int milliseconds) {
 
 void retractArm(int milliseconds) {
 
-  digitalWrite(M6_pin1, HIGH);
-  digitalWrite(M6_pin2, LOW);
+  digitalWrite(M6_pin1, LOW);
+  digitalWrite(M6_pin2, HIGH);
 
   delay(milliseconds);
   digitalWrite(M6_pin1, LOW);
@@ -277,34 +277,30 @@ void loop() {
 
   delay(1000);
 
+  extendArm(6000);
+
+  raiseArm(2500);
+
   // Approach the balls
   moveForward(8000,150);
-
+  
   delay(1000);
 
   //
   // ARM OPERATION TO PICKUP BALLS
   //
 
-  // Raise the arm above and over the balls
-  raiseArm(2000);
-
-  // Extend arm
-  extendArm(5000);
-
-  delay(1000);
-
   // Approach the balls
   moveForward(2000,150);
 
   // Lower the arm over the balls
-  lowerArm(1700); // lowering requires less time as the downwards weight has less torque, motor can operate faster
+  lowerArm(1800); // lowering requires less time as the downwards weight has less torque, motor can operate faster
 
   // Retract arm
-  retractArm(5000);
+  retractArm(6000);
 
   // Raise arm with balls inside it as high as possible to keep centre of mass as close as possible
-  raiseArm(5000);
+  // raiseArm(5000);
 
   // Approach the edge of the board, but not too close. Next section handles approach
   moveForward(3000,150);
@@ -368,22 +364,26 @@ void loop() {
   //
   
   // Maneuver left across entire board, all the way into the deposit zone
-  strafeLeft(10000, 200);
+  strafeLeft(5000, 200);
+
+  moveBackward(250,150);
+
+  strafeLeft(28000, 200);
 
   // Fall back from the edge
-  moveBackward(3000,150);
+  moveBackward(5000,150);
 
   // Turn robot around
   flip180();
 
   // Approach drop zone
-  moveForward(5000,150);
+  moveForward(3000,150);
 
   //
   // BALL DROP SEQUENCE
   //
 
-  lowerArm(4500); // Lower over drop zone
+  raiseArm(4500); // Lower over drop zone
 
   // Let balls loose
   extendArm(5000);
@@ -392,4 +392,6 @@ void loop() {
   // Move backward and set "finished" light on
   moveBackward(2000,150);
   digitalWrite(greenLEDPin,HIGH);
+
+  delay(20000);
 }
